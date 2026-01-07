@@ -1,1 +1,41 @@
-spring.application.name=youtube-backend
+spring:
+  application:
+    name: youtube-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/youtube_db?&serverTimezone=Asia/Kolkata
+    username: postgres
+    password: 12345
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # For symmetric key (HS256)
+          secret-key: SkjXypx7hDbd0FxYk2NU4HRgXHwiOLByFOI42DIj3aC
+    servlet:
+      multipart:
+        max-file-size: 2GB
+        max-request-size: 2GB
+
+resend:
+  api-key: your_resend_api_key
+
+email:
+  from: Acme <onboarding@resend.dev>
+
+app:
+  s3:
+    bucket: youtube-storage
+    region: ap-south-1
+
+presign:
+  upload-expiry-minutes: 15
+  download-expiry-minutes: 15
