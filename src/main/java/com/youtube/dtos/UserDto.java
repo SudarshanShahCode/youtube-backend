@@ -22,8 +22,7 @@ public class UserDto {
     private String name;
 
     @NotBlank(message = "Email cannot be blank")
-    @Email(regexp = "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/",
-            message = "Please enter a valid email address")
+    @Email(message = "Please enter a valid email address")
     private String email;
 
     @NotBlank(message = "Password cannot be blank")

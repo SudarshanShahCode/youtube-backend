@@ -2,18 +2,13 @@ package com.youtube.dtos;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.Data;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-@Builder
-public class LoginRequest {
+@Data
+public class VerifyUserDto {
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Please enter a valid email address")
     private String email;
-    @NotBlank(message = "Password cannot be blank")
-    private String password;
+    @NotBlank(message = "Verify Code cannot be blank")
+    private String verifyCode;
 }
