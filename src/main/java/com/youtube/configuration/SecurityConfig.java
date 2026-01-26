@@ -35,6 +35,7 @@ public class SecurityConfig {
                                 "/api/users/register",
                                 "/api/users/login",
                                 "/api/users/verify-user",
+                                "/api/videos/all",
                                 "/api/roles/**")
                         .permitAll()
                         .requestMatchers("/api/users/**").authenticated()

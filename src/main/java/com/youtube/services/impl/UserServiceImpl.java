@@ -21,6 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -40,19 +42,21 @@ public class UserServiceImpl implements UserService {
     private final EmailUtils emailUtils;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final JwtDecoder jwtDecoder;
 
     public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            RoleRepository roleRepository,
                            EmailUtils emailUtils,
                            AuthenticationManager authenticationManager,
-                           JwtUtils jwtUtils) {
+                           JwtUtils jwtUtils, JwtDecoder jwtDecoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.emailUtils = emailUtils;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
+        this.jwtDecoder = jwtDecoder;
     }
 
     @Override
@@ -200,12 +204,37 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserByEmail(String email) {
-        return null;
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return toDto(user);
     }
 
     @Override
     public AuthResponse refreshToken(String refreshToken) {
-        return null;
+        Jwt decodedToken = this.jwtDecoder.decode(refreshToken);
+
+        if (decodedToken.getExpiresAt() != null && Instant.now().isAfter(decodedToken.getExpiresAt())) {
+            throw new RuntimeException("Refresh token has expired");
+        }
+
+        String userId = decodedToken.getClaimAsString("userId");
+        List<String> roles = decodedToken.getClaimAsStringList("roles");
+
+        UserDto userDto = getUserById(Long.parseLong(userId));
+        var user = toEntity(userDto);
+
+        String accessToken = jwtUtils.generateToken(user.getEmail(), roles, user.getUserId(), 86_400_000L);
+        refreshToken = jwtUtils.generateToken(user.getEmail(), roles, user.getUserId(), 172_800_000L);
+
+        // save refresh token in db
+        user.setRefreshToken(refreshToken);
+        user.setRefreshTokenExpiry(Instant.now().plusSeconds(172_800_000L));
+        userRepository.save(user);
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     private User toEntity(UserDto userDto) {

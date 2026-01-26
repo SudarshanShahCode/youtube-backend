@@ -33,7 +33,7 @@ email:
 
 app:
   s3:
-    bucket: youtube-storage
+    bucket: youtube-storage-1
     region: ap-south-1
 
 presign:

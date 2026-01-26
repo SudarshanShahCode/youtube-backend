@@ -1,9 +1,12 @@
 package com.youtube.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -13,6 +16,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 import java.net.URISyntaxException;
 import java.time.Duration;
 
+@Slf4j
 @Component
 public class S3Utils {
 
@@ -58,5 +62,20 @@ public class S3Utils {
         return presigner.presignGetObject(presignRequest)
                         .url()
                         .toString();
+    }
+
+    public boolean objectExists(String key) {
+        try {
+            s3.headObject(
+                    HeadObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(key)
+                            .build()
+            );
+            return true;
+        } catch (NoSuchKeyException e) {
+            log.error("Video object not found for the key: {}", key);
+            return false;
+        }
     }
 }
